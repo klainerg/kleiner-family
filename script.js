@@ -22,7 +22,7 @@ function assetPath(filename, folder, extensions) {
 }
 function placeholder(description, missing) {
  const box=node('div',undefined,'image-placeholder'); box.append(node('span','◇','frame-symbol'),node('span',description));
- if(missing) box.append(node('small','התמונה אינה זמינה: '+missing));
+ if(missing) box.append(node('small',ui('התמונה אינה זמינה: ','Изображение недоступно: ')+missing));
  return box;
 }
 function imageFigure(filename, caption, folder='images') {
@@ -30,7 +30,7 @@ function imageFigure(filename, caption, folder='images') {
  const src=assetPath(filename,folder,/\.(jpe?g|png|webp)$/i);
  if(!src) figure.append(placeholder(caption,filename));
  else {
- const button=node('button',undefined,'image-button'); button.type='button'; button.setAttribute('aria-label','הגדלת תמונה: '+caption);
+ const button=node('button',undefined,'image-button'); button.type='button'; button.setAttribute('aria-label',ui('הגדלת תמונה: ','Увеличить изображение: ')+caption);
  const img=node('img'); img.alt=caption; img.loading='lazy'; img.decoding='async'; img.width=1000; img.height=700;
  img.addEventListener('error',()=>button.replaceWith(placeholder(caption,filename)),{once:true});
  img.src=src; button.append(img); button.addEventListener('click',()=>openImage(src,caption)); figure.append(button);
@@ -53,30 +53,60 @@ function parseChapter(text, id) {
  flush(); return {article,title};
 }
 async function readJSON(path) {const response=await fetch(path,{cache:'no-store'});if(!response.ok)throw new Error(path);return response.json();}
+let currentLanguage = new URLSearchParams(location.search).get('lang') === 'ru' ? 'ru' : 'he';
+let storyRequest = 0;
+function ui(he, ru) { return currentLanguage === 'ru' ? ru : he; }
+function updateLanguageUI() {
+ document.documentElement.lang = currentLanguage;
+ document.documentElement.dir = currentLanguage === 'ru' ? 'ltr' : 'rtl';
+ document.title = ui('שורשי משפחת קליינר','Корни семьи Клейнер');
+ $('.brand').replaceChildren(document.createTextNode(ui('קליינר','Клейнер')),node('span',ui('הארכיון המשפחתי','Семейный архив')));
+ $('.hero .eyebrow').textContent = ui('הארכיון המשפחתי','Семейный архив');
+ $('.hero h1').textContent = document.title;
+ $('#navigation a').textContent = ui('הסיפור המשפחתי','История семьи');
+ $('.skip').textContent = ui('מעבר לסיפור','Перейти к истории');
+ $('#story .eyebrow').textContent = ui('01 / הסיפור','01 / История');
+ $('#story h2').textContent = ui('הסיפור המשפחתי','История семьи');
+ $('.story-layout aside > span').textContent = ui('פרקי הסיפור','Главы истории');
+ $('#chapter-nav').setAttribute('aria-label',ui('פרקי הסיפור','Главы истории'));
+ $('.language-switch').setAttribute('aria-label',ui('שפת הסיפור','Язык истории'));
+ $('.close-lightbox').textContent = ui('סגירה ×','Закрыть ×');
+ $('.close-lightbox').setAttribute('aria-label',ui('סגירת התמונה','Закрыть изображение'));
+ lightbox.setAttribute('aria-label',ui('תצוגת תמונה מוגדלת','Увеличенное изображение'));
+ const topLink=node('a',ui('חזרה למעלה','Наверх'));topLink.href='#home';
+ $('footer').replaceChildren(document.createTextNode(document.title+' '),topLink);
+ document.querySelectorAll('[data-language]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.language===currentLanguage)));
+}
 async function loadStory() {
- const container=$('#chapters');container.replaceChildren();
+ const request = ++storyRequest;
+ const language = currentLanguage;
+ updateLanguageUI();
+ const container=$('#chapters');container.replaceChildren(node('p',ui('טוען את הסיפור…','Загрузка истории…'),'status'));
+ container.setAttribute('aria-busy','true');$('#chapter-nav').replaceChildren();
  try {
- const files=await readJSON('content/chapters.json');
+ const files=await readJSON(language==='ru'?'content/chapters-ru.json':'content/chapters.json');
  if(!Array.isArray(files))throw new Error('manifest');
- const results=await Promise.all(files.map(async(file,i)=>{try{if(!/^chapter-\d+\.txt$/.test(file))throw new Error('path');const response=await fetch('content/'+file,{cache:'no-store'});if(!response.ok)throw new Error(file);return parseChapter(await response.text(),'chapter-'+(i+1));}catch{return {article:node('p','לא ניתן לטעון את הפרק '+(i+1)+'. אפשר לנסות לרענן את העמוד.','status')};}}));
+ const results=await Promise.all(files.map(async(file,i)=>{
+  try {
+   if(!/^chapter-\d+(?:-ru)?\.txt$/.test(file))throw new Error('path');
+   const response=await fetch('content/'+file,{cache:'no-store'});
+   if(!response.ok)throw new Error(file);
+   return parseChapter(await response.text(),'chapter-'+(i+1));
+  }catch{return {article:node('p',language==='ru'?'Не удалось загрузить главу '+(i+1)+'. Попробуйте обновить страницу.':'לא ניתן לטעון את הפרק '+(i+1)+'. אפשר לנסות לרענן את העמוד.','status')};}
+ }));
+ if(request!==storyRequest)return;
+ container.replaceChildren();
  results.forEach(({article,title})=>{container.append(article);if(title){const a=node('a',title);a.href='#'+article.id;$('#chapter-nav').append(a);}});
- }catch{container.append(node('p','לא ניתן לטעון את הסיפור. יש לפתוח את האתר דרך GitHub Pages או שרת מקומי.','status'));}
+ }catch{
+ if(request!==storyRequest)return;
+ container.replaceChildren(node('p',ui('לא ניתן לטעון את הסיפור. יש לפתוח את האתר דרך GitHub Pages או שרת מקומי.','Не удалось загрузить историю. Откройте сайт через GitHub Pages или локальный сервер.'),'status'));
+ }
  container.setAttribute('aria-busy','false');
 }
-function fields(card, values) {const dl=node('dl');Object.entries(values).forEach(([label,value])=>{dl.append(node('dt',label),node('dd',value || 'טרם נוסף'));});card.append(dl);}
-function externalLink(url,text) {try{const u=new URL(url);if(!['http:','https:'].includes(u.protocol))return null;const a=node('a',text);a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';return a;}catch{return null;}}
-async function loadArchive() {
- try {
- const data=await readJSON('content/archive.json');
- if(data.hero?.file) $('#hero-image').replaceChildren(imageFigure(data.hero.file,data.hero.caption || 'תמונה משפחתית'));
- const families=data.family?.length?data.family:[{}];
- families.forEach(item=>{const card=node('article',undefined,'card');card.append(item.photo?imageFigure(item.photo,item.name||'תמונת בן משפחה'):placeholder('תמונת בן משפחה'));card.append(node('h3',item.name||'שם בן המשפחה'));fields(card,{'שם בשפת המקור':item.originalName,'שנות לידה ופטירה':item.years,'קשר משפחתי':item.relationship,'הערות':item.notes});$('#family-items').append(card);});
- if(data.timeline?.length)data.timeline.forEach(item=>{const li=node('li');li.append(node('strong',item.year),node('h3',item.title),node('p',item.description));$('#timeline-items').append(li);});else $('#timeline-items').append(node('li','אירועים ותאריכים יתווספו בהמשך.'));
- if(data.photos?.length)data.photos.forEach(item=>$('#photo-items').append(imageFigure(item.file,item.caption||'')));else $('#photo-items').append(placeholder('תמונות משפחתיות יתווספו בהמשך'));
- const documents=data.documents?.length?data.documents:[{}];
- documents.forEach(item=>{const card=node('article',undefined,'card');card.append(node('h3',item.title||'כותרת המסמך'));fields(card,{'שנה':item.year,'מקור / ארכיון':item.source,'תיאור':item.description});if(item.file){if(/\.pdf$/i.test(item.file)){const path=assetPath(item.file,'documents',/\.pdf$/i);if(path){const a=node('a','פתיחת המסמך (PDF)');a.href=path;a.target='_blank';a.rel='noopener';card.append(a);}}else card.append(imageFigure(item.file,item.title||'מסמך','documents'));}else card.append(placeholder('מקום למסמך או PDF'));for(const [key,label] of [['transcription','תמלול'],['translation','תרגום']])if(item[key]){const details=node('details');details.append(node('summary',label),node('p',item[key]));card.append(details);}$('#document-items').append(card);});
- const sources=data.sources?.length?data.sources:[{}];sources.forEach(item=>{const card=node('article',undefined,'card');fields(card,{'ארכיון':item.archive,'אוסף':item.collection,'מספר סימוכין':item.reference,'תיאור':item.description,'הערות':item.notes});const a=externalLink(item.link,'פתיחת המקור');if(a)card.append(a);$('#source-items').append(card);});
- if(data.research) {$('#research-text').replaceChildren();data.research.split(/\n\s*\n/).forEach(p=>$('#research-text').append(node('p',p)));}
- }catch{for(const id of ['family-items','timeline-items','photo-items','document-items','source-items'])$('#'+id).append(node(id==='timeline-items'?'li':'p','התוכן אינו זמין כרגע. אפשר לנסות לרענן את העמוד.','empty'));}
-}
-loadStory();loadArchive();
+document.querySelectorAll('[data-language]').forEach(button=>button.addEventListener('click',()=>{
+ if(button.dataset.language===currentLanguage)return;
+ currentLanguage=button.dataset.language;
+ const url=new URL(location.href);if(currentLanguage==='ru')url.searchParams.set('lang','ru');else url.searchParams.delete('lang');
+ history.replaceState(null,'',url);loadStory();
+}));
+loadStory();
