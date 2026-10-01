@@ -1,18 +1,35 @@
 <!doctype html>
 <html lang="he" dir="rtl">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>שורשי משפחת קליינר</title><meta name="theme-color" content="#243e38"><link rel="stylesheet" href="styles.css"><script defer src="script.js"></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>שורשי משפחת קליינר</title><meta name="theme-color" content="#243e38"><link rel="stylesheet" href="styles.css"><script defer src="script.js"></script><style>
+/* התאמות הקריאה נשמרות כאן כדי לעדכן רק את index.html. */
+.chapter p{font-size:1.375rem;line-height:1.95}
+.hero{display:block;min-height:0;padding:40px 0 45px}
+.hero h1{font-size:clamp(42px,5vw,64px);margin:16px 0 0}
+.hero .read-link{display:none}
+.menu-toggle{display:none!important}
+header #navigation{display:flex;width:auto;padding:0}
+[hidden]{display:none!important}
+@media(max-width:700px){
+ .chapter p{font-size:1.3125rem;line-height:1.9}
+ .chapter h3{font-size:2rem}
+ .hero{padding:25px 0 30px}
+ .story-section{padding-top:35px}
+}
+</style></head>
 <body>
 <a class="skip" href="#story">מעבר לסיפור</a>
-<header><a class="brand" href="#home">קליינר <span>הארכיון המשפחתי</span></a><button class="menu-toggle" aria-expanded="false" aria-controls="navigation">תפריט</button><nav id="navigation" aria-label="ניווט ראשי"><a href="#story">הסיפור</a><a href="#family">המשפחה</a><a href="#timeline">ציר הזמן</a><a href="#photos">תמונות</a><a href="#documents">מסמכים</a><a href="#sources">מקורות</a><a href="#research">על המחקר</a></nav></header>
+<header><a class="brand" href="#home">קליינר <span>הארכיון המשפחתי</span></a><button class="menu-toggle" aria-expanded="false" aria-controls="navigation">תפריט</button><nav id="navigation" aria-label="ניווט ראשי"><a href="#story">הסיפור המשפחתי</a></nav></header>
 <main>
-<section class="hero" id="home"><div class="hero-copy"><span class="eyebrow">הארכיון המשפחתי</span><h1>שורשי משפחת<br>קליינר</h1><a class="read-link" href="#story">לקריאת הסיפור</a></div><figure class="hero-frame" id="hero-image"><div class="image-placeholder"><span class="frame-symbol" aria-hidden="true">◇</span><span>מקום לתמונה משפחתית</span></div><figcaption>תמונה ראשית תתווסף בהמשך</figcaption></figure></section>
+<section class="hero" id="home"><div class="hero-copy"><span class="eyebrow">הארכיון המשפחתי</span><h1>שורשי משפחת<br>קליינר</h1><a class="read-link" href="#story">לקריאת הסיפור</a></div></section>
 <section id="story" class="story-section"><div class="section-heading"><span class="eyebrow">01 / הסיפור</span><h2>הסיפור המשפחתי</h2></div><div class="story-layout"><aside><span>פרקי הסיפור</span><nav id="chapter-nav" aria-label="פרקי הסיפור"></nav></aside><div id="chapters" aria-busy="true"><p class="status" role="status">טוען את הסיפור…</p></div></div><noscript>יש להפעיל JavaScript כדי לקרוא את הפרקים.</noscript></section>
-<section class="archive-section" id="family"><div class="section-heading"><span class="eyebrow">02 / המשפחה</span><h2>בני המשפחה</h2></div><div id="family-items" class="cards"></div></section>
-<section class="archive-section" id="timeline"><div class="section-heading"><span class="eyebrow">03 / ציר הזמן</span><h2>תחנות בזמן</h2></div><ol id="timeline-items" class="timeline"></ol></section>
-<section class="archive-section" id="photos"><div class="section-heading"><span class="eyebrow">04 / תמונות</span><h2>האלבום המשפחתי</h2></div><div id="photo-items" class="gallery"></div></section>
-<section class="archive-section" id="documents"><div class="section-heading"><span class="eyebrow">05 / מסמכים</span><h2>מן הארכיון</h2></div><div id="document-items" class="cards"></div></section>
-<section class="archive-section" id="sources"><div class="section-heading"><span class="eyebrow">06 / מקורות</span><h2>מקורות ורישומים</h2></div><div id="source-items" class="cards"></div></section>
-<section class="archive-section" id="research"><div class="section-heading"><span class="eyebrow">07 / על המחקר</span><h2>על המחקר</h2></div><div id="research-text" class="empty">תוכן על המחקר יתווסף בהמשך.</div></section>
+
+
+
+
+
+
+<!-- נקודות החיבור נשמרות מוסתרות לתאימות ל-script.js הקיים. -->
+<div hidden aria-hidden="true"><div id="hero-image"></div><div id="family-items"></div><ol id="timeline-items"></ol><div id="photo-items"></div><div id="document-items"></div><div id="source-items"></div><div id="research-text"></div></div>
 </main><footer>שורשי משפחת קליינר <a href="#home">חזרה למעלה</a></footer>
 <dialog id="lightbox" aria-label="תצוגת תמונה מוגדלת"><button class="close-lightbox" aria-label="סגירת התמונה">סגירה ×</button><figure><img alt=""><figcaption></figcaption></figure></dialog>
 </body></html>
