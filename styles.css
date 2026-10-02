@@ -14,3 +14,9 @@
 .supplement-main .chapter p{font-size:1.375rem;line-height:1.95}
 .supplement-main .chapter p.route-box{font-size:1.25rem}
 @media(max-width:700px){.supplement-main .chapter p{font-size:1.3125rem;line-height:1.9}.supplement-main .chapter p.route-box{font-size:1.1875rem}.supplement-main{padding-top:28px}}
+
+/* Shared language controls for the supplementary article. */
+.supplement-main .language-switch{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+.supplement-main .language-switch button{font-size:1rem;min-height:44px;padding:8px 18px;border:1px solid var(--line);background:transparent;color:var(--ink)}
+.supplement-main .language-switch button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+html[dir="ltr"] .chapter p{unicode-bidi:normal;text-align:left}
