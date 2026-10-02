@@ -48,6 +48,7 @@ function parseChapter(text, id) {
  const trimmed=line.trim(); const match=trimmed.match(/^\[\[תמונה:\s*([^|]+?)\s*\|\s*(.*?)\]\]$/);
  if(match){flush();article.append(imageFigure(match[1].trim(),match[2]));}
  else if(trimmed.startsWith('תמונה של')){flush();const figure=node('figure',undefined,'story-image');figure.append(placeholder(line));article.append(figure);}
+ else if(trimmed.startsWith('סוקיריאני →') && trimmed.endsWith('קופייגורוד.')){flush();const route=node('p',line,'route-box');route.dir='rtl';article.append(route);}
  else if(!trimmed) flush(); else paragraph.push(line);
  }
  flush(); return {article,title};
