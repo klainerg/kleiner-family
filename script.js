@@ -43,10 +43,12 @@ function parseChapter(text, id) {
  if(first<0) return {article:node('article','פרק זה עדיין ריק.','chapter'),title:'פרק ריק'};
  const title=lines[first]; const article=node('article',undefined,'chapter'); article.id=id; article.append(node('h3',title));
  let paragraph=[];
- const flush=()=>{if(paragraph.length){article.append(node('p',paragraph.join('\n')));paragraph=[];}};
+ const flush=()=>{if(paragraph.length){const p=node('p',paragraph.join('\n'));if(id==='chapter-2' && p.textContent.startsWith('בקיץ 1941 חזר האזור'))p.id='deportation-paragraph';article.append(p);paragraph=[];}};
  for(const line of lines.slice(first+1)) {
  const trimmed=line.trim(); const match=trimmed.match(/^\[\[תמונה:\s*([^|]+?)\s*\|\s*(.*?)\]\]$/);
- if(match){flush();article.append(imageFigure(match[1].trim(),match[2]));}
+ const link=trimmed.match(/^\[\[קישור:\s*([a-z0-9-]+)\s*\|\s*(.*?)\]\]$/);
+ if(link && link[1]==='deportation-route'){flush();const row=node('p',undefined,'supplement-link');const a=node('a',link[2]);a.href='deportation-route.html';row.append(a);article.append(row);}
+ else if(match){flush();article.append(imageFigure(match[1].trim(),match[2]));}
  else if(trimmed.startsWith('תמונה של')){flush();const figure=node('figure',undefined,'story-image');figure.append(placeholder(line));article.append(figure);}
  else if(trimmed.startsWith('סוקיריאני →') && trimmed.endsWith('קופייגורוד.')){flush();const route=node('p',line,'route-box');route.dir='rtl';article.append(route);}
  else if(!trimmed) flush(); else paragraph.push(line);
@@ -103,6 +105,7 @@ async function loadStory() {
  container.replaceChildren(node('p',ui('לא ניתן לטעון את הסיפור. יש לפתוח את האתר דרך GitHub Pages או שרת מקומי.','Не удалось загрузить историю. Откройте сайт через GitHub Pages или локальный сервер.'),'status'));
  }
  container.setAttribute('aria-busy','false');
+ if(location.hash){const target=document.getElementById(location.hash.slice(1));if(target)requestAnimationFrame(()=>target.scrollIntoView({block:'start'}));}
 }
 document.querySelectorAll('[data-language]').forEach(button=>button.addEventListener('click',()=>{
  if(button.dataset.language===currentLanguage)return;
@@ -110,4 +113,18 @@ document.querySelectorAll('[data-language]').forEach(button=>button.addEventList
  const url=new URL(location.href);if(currentLanguage==='ru')url.searchParams.set('lang','ru');else url.searchParams.delete('lang');
  history.replaceState(null,'',url);loadStory();
 }));
-loadStory();
+async function loadSupplement() {
+ currentLanguage='he';
+ const container=$('#supplement-content');
+ try {
+  const response=await fetch('content/deportation-route.txt',{cache:'no-store'});
+  if(!response.ok)throw new Error('article');
+  const text=(await response.text()).replace(/\((?:JewishGen|Yad Vashem)\)/g,'');
+  const parsed=parseChapter(text,'deportation-route-article');
+  const heading=parsed.article.querySelector('h3');
+  const h1=node('h1',parsed.title);heading.replaceWith(h1);
+  container.replaceChildren(parsed.article);
+ }catch{container.replaceChildren(node('p','לא ניתן לטעון את המאמר. אפשר לנסות לרענן את העמוד.','status'));}
+ container.setAttribute('aria-busy','false');
+}
+if($('#supplement-content'))loadSupplement();else loadStory();
